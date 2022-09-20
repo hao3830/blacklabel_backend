@@ -1,0 +1,51 @@
+version: "3.9"
+services:
+  service:
+    build:
+      context: ./
+      dockerfile: dockerfile
+    container_name: blacklabel
+    ports:
+      - 3030:80
+      - 4020:4020
+    networks:
+      - blacklabel_network
+    restart: unless-stopped
+    volumes:
+      - ./:/base
+    depends_on:
+      - mongo
+      - redis
+  mongo:
+    image: mongo:4.4-rc
+    container_name: bl_mongo
+    networks:
+      - blacklabel_network
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root123
+    volumes:
+      - ./:/base
+
+  mongo-express:
+    image: mongo-express
+    container_name: bl_mongo_express
+    restart: always
+    ports:
+      - 8081:8081
+    networks:
+      - blacklabel_network
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root123
+      ME_CONFIG_MONGODB_URL: mongodb://root:root123@mongo:27017/
+
+  redis:
+    image: redis
+    container_name: bl_redis
+    networks:
+      - blacklabel_network
+    restart: always
+networks:
+  blacklabel_network:
